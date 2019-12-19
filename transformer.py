@@ -43,7 +43,8 @@ class __internal__():
                 continue
 
             if os.path.isdir(one_name):
-                return_names.extend(__internal__.get_files_to_process(os.listdir(one_name), acceptable_extensions))
+                dir_names = [os.path.join(one_name, dir_file) for dir_file in os.listdir(one_name)]
+                return_names.extend(__internal__.get_files_to_process(dir_names, acceptable_extensions))
             else:
                 for one_extension in acceptable_extensions:
                     if one_name.endswith(one_extension):

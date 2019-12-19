@@ -13,7 +13,9 @@ Below is a sample command line that shows how the plot merge image could be run.
 An explanation of the command line options used follows.
 Be sure to read up on the [docker run](https://docs.docker.com/engine/reference/run/) command line for more information.
 
-```docker run --rm --mount "src=/home/test,target=/mnt,type=bind" agpipeline/plotmerge:3.0 --working_space /mnt --metadata /mnt/8701d242-10ac-4c76-8794-804db7230c4b_metadata_cleaned.json scanner3DTop /mnt```
+The files used in this example are available through Google Drive [ua_gantry_las_plot_merge_test_data.tar.gz](https://drive.google.com/file/d/1BdNiulDiBpS4c_mMoyKgRzvxcQNOooW3/view?usp=sharing)
+
+```docker run --rm --mount "src=/home/test,target=/mnt,type=bind" agpipeline/plotmerge:3.0 --working_space /mnt --metadata /mnt/15c1a9d1-36b3-43fb-a7a2-0d02c76296a4_metadata-593_cleaned.json --merge_filename '/mnt/MAC Field Scanner Season 7 Range 27 Column 1.las' scanner3DTop /mnt```
 
 This example command line assumes the files to merge are located in the `/home/test` folder of the local machine.
 The name of the image to run is `agpipeline/plotmerge:3.0`.
@@ -35,6 +37,7 @@ The command line parameters after the image name are passed to the software insi
 Note that the paths provided are relative to the running image (see the --mount option specified above).
 
 - `--working_space "/mnt"` specifies the folder to use as a workspace
-- `--metadata "/mnt/8701d242-10ac-4c76-8794-804db7230c4b_metadata_cleaned.json"` is the name of the source metadata to be cleaned
+- `--metadata "/mnt/15c1a9d1-36b3-43fb-a7a2-0d02c76296a4_metadata-593_cleaned.json"` is the name of the source metadata
+- ` --merge_filename '/mnt/MAC Field Scanner Season 7 Range 27 Column 1.las'` the name of the file to merge LAS data into
 - `scanner3DTop` the name of the sensor associated with the source files
 - `/mnt` the folder containing the files to be merged 
