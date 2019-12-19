@@ -63,9 +63,10 @@ class __internal__():
         # Merge if we already have a destination file, otherwise just copy
         if os.path.isfile(merged_path):
             cmd = 'pdal merge "%s" "%s" "%s"' % (las_path, merged_path, merged_path)
-            logging.debug("Running merge command: %s", cmd)
+            logging.debug("Running merge command: '%s'", cmd)
             subprocess.call([cmd], shell=True)
         else:
+            logging.debug("Nothing to merge: copying '%s' to '%s'", las_path, merged_path)
             shutil.copy(las_path, merged_path)
 
     @staticmethod
@@ -123,12 +124,12 @@ class __internal__():
         Return:
             Returns the combined metadata.
         Note:
-            A copy of the source metadata is made and modified before it's returned
-            Types of list are merged through list.extend()
-            Types of set are merged through set.union()
-            Types of dict are merged in depth, up to recursion_depth
+            A deep copy of the source metadata is made and updated before it's returned.
+            Types that are not mutable, such as strings and lists, are copied and not combined.
+            Types of 'list' are merged through list.extend().
+            Types of 'dict' are merged in depth, up to recursion_depth, with types merged as described (eg: 'list', et. al.).
             Dictionaries encountered at the end of recursion depth are shallow merged with merge_md values taking
-            precedence over existing values; for example: source_md[key] = {**source_md[key], **merge_md[key]}
+            precedence over existing values; for example: dest_md[key] = {**src_md[key], **merge_md[key]}.
         """
         if not source_md:
             return merge_md if merge_md else {}
@@ -141,7 +142,7 @@ class __internal__():
         common_keys = [k for k in merge_keys if k in return_key_set]
         new_keys = [k for k in merge_keys if k not in return_key_set]
 
-        # Only merge fields that are arrays or dict, copy the rest
+        # Only merge fields that are arrays, set, or dict, copy the rest
         for one_key in common_keys:
             one_value = return_md[one_key]
             new_value = merge_md[one_key]
@@ -149,13 +150,7 @@ class __internal__():
                 if isinstance(new_value, list):
                     return_md[one_key].extend(new_value)
                 else:
-                    logging.debug("Ignoring attempt to merge list metadata key '%s' with an incompatible type: %s", one_key,
-                                  type(new_value))
-            elif isinstance(one_value, set):
-                if isinstance(new_value, set):
-                    return_md[one_key] = one_value.union(new_value)
-                else:
-                    logging.debug("Ignoring attempt to merge list metadata key '%s' with an incompatible type: %s", one_key,
+                    logging.debug("Ignoring attempt to merge list metadata key '%s' with non-list type: %s", one_key,
                                   type(new_value))
             elif isinstance(one_value, dict):
                 if isinstance(new_value, dict):
@@ -164,7 +159,7 @@ class __internal__():
                     else:
                         return_md[one_key] = {**one_value, **new_value}
                 else:
-                    logging.warning("Ignoring attempt to merge dictionary metadata key '%s' with an incompatible type: %s", one_key,
+                    logging.warning("Ignoring attempt to merge dict metadata key '%s' with non-dict type: %s", one_key,
                                     type(new_value))
             else:
                 return_md[one_key] = merge_md[one_key]
@@ -205,7 +200,7 @@ class __internal__():
 
         # If there isn't file-level metadata to merge, just return
         if 'metadata' not in new_md or 'data' not in new_md['metadata']:
-            # The entry already exists and there's nothing to merge
+            # The entry already exists in dest metadata and there's nothing to merge
             return dest_md
 
         # Merge the metadata
@@ -213,8 +208,11 @@ class __internal__():
         if 'metadata' in working_md:
             if 'data' in working_md['metadata']:
                 working_md['metadata']['data'] = __internal__.merge_file_dict(working_md['metadata']['data'], new_md['metadata']['data'])
-        elif 'metadata' in new_md:
+        else:
+            # We have checked that new_md has 'metadata' key earlier
             working_md['metadata'] = new_md['metadata']
+        # Save new/modified metadata
+        dest_md[match_idx] = working_md
 
         return dest_md
 
@@ -265,6 +263,7 @@ def perform_process(transformer: transformer_class.Transformer, check_md: dict, 
                 os.makedirs(out_path)
 
             if not __internal__.check_already_merged(merged_txt, filepath):
+                logging.debug("Merging '%s' into '%s'", filepath, merged_out)
                 __internal__.merge_las(filepath, merged_out)
                 with open(merged_txt, 'a') as contents:
                     contents.write(filename + "\n")
