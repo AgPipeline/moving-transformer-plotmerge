@@ -18,7 +18,7 @@ The files used in this example are available through Google Drive [ua_gantry_las
 ```docker run --rm --mount "src=/home/test,target=/mnt,type=bind" agpipeline/plotmerge:3.0 --working_space /mnt --metadata /mnt/15c1a9d1-36b3-43fb-a7a2-0d02c76296a4_metadata-593_cleaned.json --merge_filename '/mnt/MAC Field Scanner Season 7 Range 27 Column 1.las' scanner3DTop /mnt```
 
 This example command line assumes the files to merge are located in the `/home/test` folder of the local machine.
-The name of the image to run is `agpipeline/plotmerge:3.0`.
+The name of the Docker image to run is `agpipeline/plotmerge:3.0`.
 
 We are using the same folder for the source files and the output files.
 By using multiple `--mount` options, the source and output files can be separated.
