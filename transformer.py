@@ -40,6 +40,7 @@ class __internal__():
         for one_name in source_names:
             if not os.path.exists(one_name):
                 logging.info("Ignoring missing file: '%s'", one_name)
+
                 continue
 
             if os.path.isdir(one_name):
